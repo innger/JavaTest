@@ -16,71 +16,56 @@ public class EasyCode {
     @Test
     public void largeGroupPositionsTest() {
         List<List<Integer>> result = largeGroupPositions("abbxxxxzzy");
-        result.forEach(
-                l -> System.out.println(l)
-        );
+        printListList(result);
+
+        result = largeGroupPositions("abc");
+        printListList(result);
+
+        result = largeGroupPositions("abcdddeeeeaabbbcd");
+        printListList(result);
+
+        result = largeGroupPositions("a");
+        printListList(result);
     }
 
+    private void printListList(List<List<Integer>> list) {
+        list.forEach(System.out::print);
+        System.out.println();
+    }
 
+    /**
+     * 830. 较大分组的位置
+     * 所有包含大于或等于三个连续字符的分组为较大分组
+     * 最终结果按照字典顺序输出
+     *
+     * @param S String 1 <= S.length <= 1000
+     * @return 分组
+     */
     public List<List<Integer>> largeGroupPositions(String S) {
         if (S == null || S.length() == 0) {
             return null;
         }
         List<List<Integer>> result = new ArrayList<>();
         if (S.length() <= 1) {
-            List<Integer> sub = new ArrayList<>();
-            sub.add(0);
-            result.add(sub);
             return result;
         }
 
-        class Node implements Comparable<Node> {
-            char ch;
-            int i;
-            int j;
-
-            public Node(char ch) {
-                this.ch = ch;
-            }
-
-            public Node(char ch, int i, int j) {
-                this.ch = ch;
-                this.i = i;
-                this.j = j;
-            }
-
-            @Override
-            public int compareTo(Node o) {
-                return this.ch - o.ch;
-            }
-
-            @Override
-            public String toString() {
-                return "Node{" +
-                        "ch=" + ch +
-                        ", i=" + i +
-                        ", j=" + j +
-                        '}';
-            }
-        }
-
-        List<Node> list = new ArrayList<>();
 
         int i = 0;
-        while (i < S.length()) {
-            char ch = S.charAt(0);
-            int j = 1;
-
-            list.add(new Node(S.charAt(i)));
+        int len = S.length();
+        while (i < len) {
+            int s = i;
+            char ch = S.charAt(i);
+            while (i < len && ch == S.charAt(i)) {
+                i++;
+            }
+            if (i - s >= 3) {
+                List<Integer> sub = new ArrayList<>();
+                sub.add(s);
+                sub.add(i - 1);
+                result.add(sub);
+            }
         }
-        Collections.sort(list);
-        list.forEach(
-                node -> {
-                    List<Integer> sub = new ArrayList<>();
-                    sub.add(node.i);sub.add(node.j);
-                    result.add(sub);
-                }
-        );
         return result;
     }
 }

@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * leetcode easy code Created by Administrator on 2018-06-14.
@@ -11,33 +12,288 @@ import java.util.stream.Collectors;
 public class EasyCode {
 
     @Test
-    public void toGoatLatinTest() {
+    public void tree2strTest() {
+        TreeNode root = new TreeNode(1);
+        root.left = new TreeNode(2);
+        root.right = new TreeNode(3);
+        root.left.right = new TreeNode(4);
+        System.out.println(tree2str(root));
 
+        root.left.right = null;
+        root.left.left = new TreeNode(4);
+        System.out.println(tree2str(root));
+
+        TreeNode root2 = new TreeNode(1);
+        System.out.println(tree2str(root2));
     }
 
     /**
-     * 824. 山羊拉丁文
+     * 606. 根据二叉树创建字符串 采用前序遍历的方式，将一个二叉树转换成一个由括号和整数组成的字符串
+     * 上周五想了半天没写出来，今天周一AC，树递归遍历 2018-06-25 19：52
      *
+     * @param t TreeNode
+     * @return str
+     */
+    public String tree2str(TreeNode t) {
+        StringBuilder builder = new StringBuilder();
+        preOrder(t, builder);
+        String res = builder.toString();
+        if (res.length() < 1) {
+            return res;
+        }
+        return res.substring(1, res.length() - 1);
+    }
+
+    private void preOrder(TreeNode root, StringBuilder builder) {
+        if (root == null) {
+            return;
+        }
+        builder.append("(").append(root.val);
+        if (root.left != null) {
+            preOrder(root.left, builder);
+        } else if (root.right != null) {
+            builder.append("()");
+        }
+        if (root.right != null) {
+            preOrder(root.right, builder);
+        }
+        builder.append(")");
+    }
+
+    public class TreeNode {
+        int      val;
+        TreeNode left;
+        TreeNode right;
+
+        TreeNode(int x) { val = x; }
+
+        @Override
+        public String toString() {
+            return String.valueOf(val);
+        }
+    }
+
+    @Test
+    public void mostCommonWordTest() {
+        System.out.println(mostCommonWord("Bob hit a ball, the hit BALL flew far after it was hit.", new String[] {"hit"}));
+        System.out.println(mostCommonWord("Bob", new String[] {}));
+    }
+
+    /**
+     * 819. 最常见的单词 给定一个段落 (paragraph) 和一个禁用单词列表 (banned)。 返回出现次数最多，同时不在禁用列表中的单词。
+     * 题目保证至少有一个词不在禁用列表中，而且答案唯一
      *
+     * @param paragraph 段落字符串
+     * @param banned    被禁单词
+     * @return 最常见单词出现的次数
+     */
+    public String mostCommonWord(String paragraph, String[] banned) {
+        Set<String> banSet = Stream.of(banned).collect(Collectors.toSet());
+        Map<String, Integer> stat = new HashMap<>();
+        Set<Character> set = new HashSet<>();
+        set.add('!');
+        set.add('?');
+        set.add('\'');
+        set.add(',');
+        set.add(';');
+        set.add('.');
+        set.add(' ');
+        int i = 0;
+        while (i < paragraph.length()) {
+            int j = i;
+            char ch = paragraph.charAt(j);
+            while ((ch >= 'a' && ch <= 'z') ||
+                    (ch >= 'A' && ch <= 'Z')) {
+                j++;
+                if (j > paragraph.length() - 1) {
+                    break;
+                }
+                ch = paragraph.charAt(j);
+            }
+
+            String word = paragraph.substring(i, j).toLowerCase();
+            if (!banSet.contains(word)) {
+                Integer cnt = stat.get(word);
+                if (cnt == null) {
+                    cnt = 0;
+                }
+                stat.put(word, ++cnt);
+            }
+            i = j;
+            while (i < paragraph.length()) {
+                ch = paragraph.charAt(i);
+                if (!set.contains(ch)) {
+                    break;
+                }
+                i++;
+            }
+        }
+        //System.out.println(stat);
+        int max = 0;
+        String most = null;
+        for (Map.Entry<String, Integer> entry : stat.entrySet()) {
+            if (entry.getValue() > max) {
+                max = entry.getValue();
+                most = entry.getKey();
+            }
+        }
+        return most;
+    }
+
+    @Test
+    public void rotatedDigitsTest() {
+        System.out.println(rotatedDigits(10));
+    }
+
+    /**
+     * 788. 旋转数字 一个数 X 为好数, 如果它的每位数字逐个地被旋转 180 度后，我们仍可以得到一个有效的，且和 X 不同的数。要求每位数字都要被旋转 0，1，8旋转后仍然是它们自己 2 5 / 6 9 可以互相旋转成对方 其他数字旋转以后不是有效数字
      *
-     * @param S
-     * @return
+     * @param N 正整数
+     * @return 计算从 1 到 N 中有多少个数 X 是好数
+     */
+    public int rotatedDigits(int N) {
+        Map<Integer, Integer> rotateMap = new HashMap<>();
+        rotateMap.put(0, 0);
+        rotateMap.put(1, 1);
+        rotateMap.put(8, 8);
+        rotateMap.put(2, 5);
+        rotateMap.put(5, 2);
+        rotateMap.put(6, 9);
+        rotateMap.put(9, 6);
+        int cnt = 0;
+        for (int i = 1; i <= N; i++) {
+            int n = i;
+            int rotatedNum = 0;
+            int multi = 1;
+            while (n != 0) {
+                int m = n % 10;
+                Integer mm = rotateMap.get(m);
+                if (mm == null) {
+                    rotatedNum = 0;
+                    break;
+                }
+                rotatedNum = mm * multi + rotatedNum;
+                n /= 10;
+                multi *= 10;
+            }
+            //System.out.println(i + " " + rotatedNum);
+            if (rotatedNum != 0 && rotatedNum != i) {
+                cnt++;
+            }
+
+        }
+
+        return cnt;
+    }
+
+    @Test
+    public void countBinarySubstringsTest() {
+        System.out.println(countBinarySubstrings("00110011"));
+        System.out.println(countBinarySubstrings("10101"));
+        System.out.println(countBinarySubstrings("1010001"));
+        System.out.println(countBinarySubstrings("11110000"));
+    }
+
+    /**
+     * 696. 计数二进制子串 给定一个字符串 s，计算具有相同数量0和1的非空(连续)子字符串的数量，并且这些子字符串中的所有0和所有1都是组合在一起的。 重复出现的子串要计算它们出现的次数 找出01 或者10 ，从中心向外扩
+     *
+     * @param s 字符串
+     * @return 出现的次数
+     */
+    public int countBinarySubstrings(String s) {
+        if (s == null || s.length() <= 1) {
+            return 0;
+        }
+
+        int cnt = 0;
+        for (int i = 0; i < s.length() - 1; i++) {
+            while (i < s.length() - 1 && s.charAt(i) == s.charAt(i + 1)) {
+                i++;
+            }
+            if (i == s.length() - 1) {
+                return cnt;
+            }
+            cnt += countExtend(s, i, i + 1);
+
+        }
+
+        return cnt;
+    }
+
+    private int countExtend(String s, int i, int j) {
+        int cnt = 0;
+        char begin = s.charAt(i);
+        char end = s.charAt(j);
+        while (i >= 0 && j < s.length()) {
+            if (begin == s.charAt(i) && s.charAt(i) != s.charAt(j) && end == s.charAt(j)) {
+                cnt++;
+            } else {
+                break;
+            }
+            i--;
+            j++;
+        }
+        return cnt;
+    }
+
+    @Test
+    public void toGoatLatinTest() {
+        System.out.println(toGoatLatin("apple"));
+        System.out.println(toGoatLatin("goat"));
+        System.out.println(toGoatLatin("I speak Goat Latin"));
+        System.out.println(toGoatLatin("The quick brown fox jumped over the lazy dog"));
+    }
+
+    /**
+     * 824. 山羊拉丁文 给定一个由空格分割单词的句子 S。每个单词只包含大写或小写字母。
+     *
+     * @param S 空格分割的句子字符串
+     * @return string
      */
     public String toGoatLatin(String S) {
-        return "";
+        String[] words = S.split("\\s");
+        //System.out.println(Arrays.toString(words));
+        StringBuilder builder = new StringBuilder();
+        Set<Character> ae = new HashSet<>();
+        ae.add('a');
+        ae.add('A');
+        ae.add('e');
+        ae.add('E');
+        ae.add('i');
+        ae.add('I');
+        ae.add('o');
+        ae.add('O');
+        ae.add('u');
+        ae.add('U');
+        StringBuilder abuilder = new StringBuilder("a");
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            char head = word.charAt(0);
+            if (ae.contains(head)) {
+                builder.append(word);
+            } else {
+                builder.append(word.substring(1)).append(head);
+            }
+            builder.append("ma");
+            builder.append(abuilder);
+            if (i < words.length - 1) {
+                builder.append(" ");
+            }
+            abuilder.append("a");
+        }
+
+        return builder.toString();
     }
 
     @Test
     public void compressTest() {
         System.out.println(compress(new char[] {'a', 'a', 'b', 'b', 'c', 'c', 'c'}));
-        System.out.println(compress(new char[] {'a', 'b', 'b','b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b'}));
+        System.out.println(compress(new char[] {'a', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b'}));
         System.out.println(compress(new char[] {'a', 'b', 'c'}));
     }
 
     /**
-     * 443. 压缩字符串
-     * 给定一组字符，使用原地算法将其压缩。
-     * 压缩后的长度必须始终小于或等于原数组长度
+     * 443. 压缩字符串 给定一组字符，使用原地算法将其压缩。 压缩后的长度必须始终小于或等于原数组长度
      *
      * @param chars 输入字符数组
      * @return 在完成原地修改输入数组后，返回数组的新长度
@@ -85,15 +341,15 @@ public class EasyCode {
     public void validPalindromeTest() {
         System.out.println(validPalindrome("aba"));
         System.out.println(validPalindrome("abca"));
-        System.out.println(validPalindrome("aguokepatgbnvfqmgmlcupuufxoohdfpgjdmysgvhmvffcnqxjjxqncffvmhvgsymdjgpfdhooxfuupuculmgmqfvnbgtapekouga"));
+        System.out.println(
+                validPalindrome("aguokepatgbnvfqmgmlcupuufxoohdfpgjdmysgvhmvffcnqxjjxqncffvmhvgsymdjgpfdhooxfuupuculmgmqfvnbgtapekouga"));
 
-        System.out.println(isPalindrome("aba", 0 , 2));
+        System.out.println(isPalindrome("aba", 0, 2));
         System.out.println(isPalindrome("abba", 0, 3));
     }
 
     /**
-     * 680. 验证回文字符串 Ⅱ
-     * 给定一个非空字符串 s，最多删除一个字符。判断是否能成为回文字符串。
+     * 680. 验证回文字符串 Ⅱ 给定一个非空字符串 s，最多删除一个字符。判断是否能成为回文字符串。
      *
      * @param s 字符串
      * @return 是否回文
@@ -112,8 +368,7 @@ public class EasyCode {
                 }
                 if (isPalindrome(s, i + 1, j)) {
                     return true;
-                } else
-                    return isPalindrome(s, i, j - 1);
+                } else { return isPalindrome(s, i, j - 1); }
             } else {
                 i++;
                 j--;
@@ -139,9 +394,7 @@ public class EasyCode {
     }
 
     /**
-     * 686. 重复叠加字符串匹配
-     * 寻找重复叠加字符串A的最小次数，使得字符串B成为叠加后的字符串A的子串，如果不存在则返回 -1
-     * 模式匹配问题
+     * 686. 重复叠加字符串匹配 寻找重复叠加字符串A的最小次数，使得字符串B成为叠加后的字符串A的子串，如果不存在则返回 -1 模式匹配问题
      *
      * @param A 重复叠加字符串
      * @param B 目标字符串
@@ -197,13 +450,11 @@ public class EasyCode {
             i++;
 
         }
-        return i == B.length()? cnt : -1;
+        return i == B.length() ? cnt : -1;
     }
-
 
     @Test
     public void maxAreaOfIslandTest() {
-
 
     }
 
@@ -235,9 +486,9 @@ public class EasyCode {
     }
 
     /**
-     * 657. 判断路线成圈
-     * 机器人有效的动作有 R（右），L（左），U（上）和 D（下）。输出应为 true 或 false，表示机器人移动路线是否成圈
-     * @param moves  移动动作
+     * 657. 判断路线成圈 机器人有效的动作有 R（右），L（左），U（上）和 D（下）。输出应为 true 或 false，表示机器人移动路线是否成圈
+     *
+     * @param moves 移动动作
      * @return true/false
      */
     public boolean judgeCircle(String moves) {
@@ -246,11 +497,20 @@ public class EasyCode {
         for (int i = 0; i < moves.length(); i++) {
             Character c = moves.charAt(i);
             switch (c) {
-                case 'R': h++; break;
-                case 'L': h--; break;
-                case 'U': v++; break;
-                case 'D': v--; break;
-                default:break;
+                case 'R':
+                    h++;
+                    break;
+                case 'L':
+                    h--;
+                    break;
+                case 'U':
+                    v++;
+                    break;
+                case 'D':
+                    v--;
+                    break;
+                default:
+                    break;
             }
         }
         return v == 0 && h == 0;
@@ -259,9 +519,9 @@ public class EasyCode {
     @Test
     public void imageSmootherTest() {
         int[][] result = imageSmoother(new int[][] {
-            new int[] {1, 1, 1},
-            new int[] {1, 0, 1},
-            new int[] {1, 1, 1},
+                new int[] {1, 1, 1},
+                new int[] {1, 0, 1},
+                new int[] {1, 1, 1},
         });
         for (int i = 0; i < result.length; i++) {
             System.out.println(Arrays.toString(result[i]));
@@ -271,8 +531,7 @@ public class EasyCode {
     /**
      * 661. 图片平滑器
      *
-     *
-     * @param M  包含整数的二维矩阵 M 表示一个图片的灰度
+     * @param M 包含整数的二维矩阵 M 表示一个图片的灰度
      * @return 平均灰度矩阵
      */
     public int[][] imageSmoother(int[][] M) {
@@ -284,39 +543,39 @@ public class EasyCode {
             for (int j = 0; j < col; j++) {
                 int sum = M[i][j];
                 int cnt = 1;
-                if(i > 0) {
-                    sum += M[i-1][j];
+                if (i > 0) {
+                    sum += M[i - 1][j];
                     cnt++;
                 }
                 if (i < row - 1) {
-                    sum += M[i+1][j];
+                    sum += M[i + 1][j];
                     cnt++;
                 }
 
                 if (j > 0) {
-                    sum += M[i][j-1];
+                    sum += M[i][j - 1];
                     cnt++;
                 }
 
                 if (j < col - 1) {
-                    sum += M[i][j+1];
+                    sum += M[i][j + 1];
                     cnt++;
                 }
                 //四个斜角数字
                 if (i > 0 && j > 0) {
-                    sum += M[i-1][j-1];
+                    sum += M[i - 1][j - 1];
                     cnt++;
                 }
                 if (i > 0 && j < col - 1) {
-                    sum += M[i-1][j+1];
+                    sum += M[i - 1][j + 1];
                     cnt++;
                 }
-                if (i < row -1 && j > 0) {
-                    sum += M[i+1][j-1];
+                if (i < row - 1 && j > 0) {
+                    sum += M[i + 1][j - 1];
                     cnt++;
                 }
-                if (i < row -1 && j < col -1) {
-                    sum += M[i+1][j+1];
+                if (i < row - 1 && j < col - 1) {
+                    sum += M[i + 1][j + 1];
                     cnt++;
                 }
 
@@ -330,16 +589,14 @@ public class EasyCode {
     @Test
     public void isOneBitCharacterTest() {
         System.out.println(isOneBitCharacter(new int[] {1, 0, 0}));
-        System.out.println(isOneBitCharacter(new int[] {1, 1 , 1, 0}));
+        System.out.println(isOneBitCharacter(new int[] {1, 1, 1, 0}));
     }
 
     /**
-     * 717. 1比特与2比特字符
-     * 第一种字符可以用一比特0来表示。第二种字符可以用两比特(10 或 11)来表示
-     * 给定的字符串总是由0结束
+     * 717. 1比特与2比特字符 第一种字符可以用一比特0来表示。第二种字符可以用两比特(10 或 11)来表示 给定的字符串总是由0结束
      *
      * @param bits 1/0
-     * @return  最后一个字符是否必定为一个一比特字符
+     * @return 最后一个字符是否必定为一个一比特字符
      */
     public boolean isOneBitCharacter(int[] bits) {
         if (bits.length == 1) {
@@ -353,7 +610,7 @@ public class EasyCode {
                 i++;
                 result = true;
             } else {
-                i+=2;
+                i += 2;
                 result = false;
             }
         }
@@ -368,8 +625,7 @@ public class EasyCode {
     }
 
     /**
-     * 747. 至少是其他数字两倍的最大数
-     * 查找数组中的最大元素是否至少是数组中每个其他数字的两倍
+     * 747. 至少是其他数字两倍的最大数 查找数组中的最大元素是否至少是数组中每个其他数字的两倍
      *
      * @param nums 数组
      * @return index or -1
@@ -429,7 +685,7 @@ public class EasyCode {
 
         for (int i = 2; i < cost.length + 1; i++) {
             minSum = Math.min(dp1, dp2);
-            if (i == cost.length) break;
+            if (i == cost.length) { break; }
             dp1 = dp2;
             dp2 = minSum + cost[i];
         }
